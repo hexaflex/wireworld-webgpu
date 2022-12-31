@@ -19,11 +19,12 @@ The program uses [WebGPU][2] and [GLFW 3.3][3] through [mach][4] core libraries.
 
 ### Usage
 
-  $ git clone https://github.com/hexaflex/wireworld-webgpu
-  $ cd wireworld-webgpu
-  $ git submodule update --init --recursive
-  $ zig build run -- testdata/primes.png
-
+```
+$ git clone https://github.com/hexaflex/wireworld-webgpu
+$ cd wireworld-webgpu
+$ git submodule update --init --recursive
+$ zig build run -- testdata/primes.png
+```
 
 The program can load simulations from an image file. The image is expected to be drawn using a known color palette. The loader uses this palette to determine what kind of cell state a specific pixel represents.
 
