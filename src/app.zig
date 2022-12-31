@@ -24,6 +24,9 @@ const DrawMode = enum {
 const min_step_count = 1;
 const max_step_count = 20;
 
+init_filename: ?[]const u8 = null,
+init_palette: ?*const Palette = null,
+
 grid: *Grid = undefined,
 title_timer: u64 = 0,
 step_count: usize = 1,
@@ -50,6 +53,8 @@ pub fn init(filename: ?[]const u8, palette: ?*const Palette) !*@This() {
         defer sim.deinit();
 
         self.grid = try Grid.initFromCircuit(&sim);
+        self.init_filename = try gnorp.allocator.dupe(u8, file);
+        self.init_palette = palette;
     } else {
         self.grid = try Grid.initFromSize(256, 256);
     }
@@ -58,6 +63,9 @@ pub fn init(filename: ?[]const u8, palette: ?*const Palette) !*@This() {
 }
 
 pub fn deinit(self: *@This()) void {
+    if (self.init_filename) |f|
+        gnorp.allocator.free(f);
+
     self.grid.release();
     graphics.window.setUserPointer(null);
     graphics.window.setKeyCallback(null);
@@ -177,6 +185,14 @@ inline fn keyCallbackZig(self: *@This(), key: glfw.Key, scancode: i32, action: g
             .s => self.step_count = @max(self.step_count - 1, min_step_count),
             .v => self.grid.center(try graphics.getFramebufferSize()),
             .w => self.step_count = @min(self.step_count + 1, max_step_count),
+            .F5 => if (self.init_filename) |file| {
+                var sim = try Circuit.initFromFile(file, self.init_palette orelse &Palette{});
+                defer sim.deinit();
+
+                self.running = false;
+                self.grid.release();
+                self.grid = try Grid.initFromCircuit(&sim);
+            },
             else => {},
         },
         else => {},
