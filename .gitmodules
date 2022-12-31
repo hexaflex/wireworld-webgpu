@@ -1,0 +1,3 @@
+[submodule "libs/gnorp"]
+	path = libs/gnorp
+	url = https://github.com/hexaflex/gnorp

@@ -1,0 +1,12 @@
+GIMP Palette
+Name: Wireworld palette
+#
+  0   0   0    # Empty
+182 182 182    # Annotations 1
+ 50  50  50    # Annotations 2
+255   0   0    # Annotations 3
+  0   0 255    # Annotations 4
+255 255   0    # Annotations 5
+  1  91 150    # Wire
+153 255   0    # Tail
+255 255 255	   # Head
