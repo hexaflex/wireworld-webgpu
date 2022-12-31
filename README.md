@@ -45,9 +45,9 @@ The default palette is as follows:
 
 ---
 
-For your convenience, the `testdata/palette.gpl` file contains a GIMP Palette with the default colors recognized by this program. Empty cells and cells with annotations colors are ignored by the simulator.
+For your convenience, the `testdata/palette.gpl` file contains a GIMP Palette with the default colors recognized by this program. Empty cells and cells with annotation colors are ignored by the simulator.
 
-The color palette can be changed by providing custom RGB values through the respective `-pal-???` commandline flags. These should match the colors used in the input image. Pixels with unrecognized colors in the input image are ignored and treated as an empty cell. The color should come in the hexadecimal notation: `#rrggbb`. The commandline flags for the colors are `--pal-empty`. `--pal-wire`, `--pal-head`, `--pal-tail`, `--pal-notes1`, `--pal-notes2`, `--pal-notes3`, `--pal-notes4` and `--pal-notes5`.
+The color palette can be changed by providing custom RGB values through the respective `--pal-???` commandline flags. These should match the colors used in the input image. Pixels with unrecognized colors in the input image are ignored and treated as an empty cell. The color should come in the hexadecimal notation: `#rrggbb`. The commandline flags for the colors are `--pal-empty`. `--pal-wire`, `--pal-head`, `--pal-tail`, `--pal-notes1`, `--pal-notes2`, `--pal-notes3`, `--pal-notes4` and `--pal-notes5`.
 
 Refer to the `testdata` directory for examples of images with Wireworld simulations.
 
@@ -91,7 +91,6 @@ Refer to the `testdata` directory for examples of images with Wireworld simulati
 * Add UI with for simulation and drawing controls.
 * Add means to load, save and import circuits.
 * Add means to save and load versioned simulation snapshots.
-* Add commandline handling so the program can load a simulation, optionally with custom palette, at program launch.
 * Figure out a way to determine optimal workgroup size and divide workload up as applicable. Currently only one workgroup dimension is used at 100% capacity.
 
 ---
