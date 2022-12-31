@@ -14,6 +14,9 @@ The program uses [WebGPU][2] and [GLFW 3.3][3] through [mach][4] core libraries.
 [4]: https://github.com/hexops/mach
 
 
+![screenshot of primes.png simulation](https://github.com/hexaflex/wireworld-webgpu/blob/trunk/screenshot1.jpg?raw=true)
+
+
 ### Usage
 
   $ git clone https://github.com/hexaflex/wireworld-webgpu
