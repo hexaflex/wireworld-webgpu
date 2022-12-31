@@ -56,7 +56,7 @@ pub fn init(filename: ?[]const u8, palette: ?*const Palette) !*@This() {
         self.init_filename = try gnorp.allocator.dupe(u8, file);
         self.init_palette = palette;
     } else {
-        self.grid = try Grid.initFromSize(256, 256);
+        self.grid = try Grid.initFromSize(254, 253);
     }
 
     return self;
@@ -177,9 +177,8 @@ inline fn keyCallbackZig(self: *@This(), key: glfw.Key, scancode: i32, action: g
             .e => self.grid.step(1),
             .n => if (mods.control) {
                 self.running = false;
-                try self.grid.clear();
-                try self.grid.resize(100, 100);
-                self.grid.center(try graphics.getFramebufferSize());
+                self.grid.release();
+                self.grid = try Grid.initFromSize(254, 253);
             },
             .q => self.running = !self.running,
             .s => self.step_count = @max(self.step_count - 1, min_step_count),
