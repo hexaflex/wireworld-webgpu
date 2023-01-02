@@ -25,7 +25,7 @@ const min_step_count = 1;
 const max_step_count = 20;
 
 init_filename: ?[]const u8 = null,
-init_palette: ?*const Palette = null,
+init_palette: Palette = .{},
 
 grid: *Grid = undefined,
 title_timer: u64 = 0,
@@ -38,7 +38,7 @@ dragging: bool = false,
 /// init initializes the application. Optionally loading the given simulation
 /// file. The palette can be used specify a custom color palette if the input
 /// image does not match the builtin palette this program uses.
-pub fn init(filename: ?[]const u8, palette: ?*const Palette) !*@This() {
+pub fn init(filename: ?[]const u8, palette: ?Palette) !*@This() {
     var self = try gnorp.allocator.create(@This());
     errdefer gnorp.allocator.destroy(self);
     self.* = .{};
@@ -49,12 +49,13 @@ pub fn init(filename: ?[]const u8, palette: ?*const Palette) !*@This() {
     graphics.window.setMouseButtonCallback(mouseButtonCallback);
 
     if (filename) |file| {
-        var sim = try Circuit.initFromFile(file, palette orelse &Palette{});
+        self.init_filename = try gnorp.allocator.dupe(u8, file);
+        self.init_palette = palette orelse .{};
+
+        var sim = try Circuit.initFromFile(file, &self.init_palette);
         defer sim.deinit();
 
         self.grid = try Grid.initFromCircuit(&sim);
-        self.init_filename = try gnorp.allocator.dupe(u8, file);
-        self.init_palette = palette;
     } else {
         self.grid = try Grid.initFromSize(254, 253);
     }
@@ -185,7 +186,7 @@ inline fn keyCallbackZig(self: *@This(), key: glfw.Key, scancode: i32, action: g
             .v => self.grid.center(try graphics.getFramebufferSize()),
             .w => self.step_count = @min(self.step_count + 1, max_step_count),
             .F5 => if (self.init_filename) |file| {
-                var sim = try Circuit.initFromFile(file, self.init_palette orelse &Palette{});
+                var sim = try Circuit.initFromFile(file, &self.init_palette);
                 defer sim.deinit();
 
                 self.running = false;

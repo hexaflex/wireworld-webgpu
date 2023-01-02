@@ -29,7 +29,7 @@ pub fn main() !void {
     var app: *App = undefined;
     if (try parseCommandLine(alloc)) |args| {
         defer args.deinit(alloc);
-        app = try App.init(args.filename, &args.palette);
+        app = try App.init(args.filename, args.palette);
     } else {
         app = try App.init(null, null);
     }
