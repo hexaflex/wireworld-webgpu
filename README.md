@@ -59,8 +59,8 @@ Refer to the `testdata` directory for examples of images with Wireworld simulati
   Escape            | Close the program.
   Q                 | Start/Stop the simulation.
   E                 | Perform a single simulation step.
-  W                 | Double the simulation speed.
-  S                 | Halve the simulation speed.
+  +                 | Double the simulation speed.
+  -                 | Halve the simulation speed.
   F5                | Reset the simulation (reloads the original input image).
   ---               | 
   Ctrl-N            | Create a new, blank simulation.
@@ -72,8 +72,8 @@ Refer to the `testdata` directory for examples of images with Wireworld simulati
   6                 | Select Annotation Color 3 draw tool.
   7                 | Select Annotation Color 4 draw tool.
   8                 | Select Annotation Color 5 draw tool.
-  Hold LMB          | Fill cell under cursor with selected draw tool.
-  Hold RMB          | Clear cell under mouse cursor.
+  Hold LMB          | **In draw mode**: Fill cell under cursor with selected draw tool.
+  Hold RMB          | **In draw mode**: Clear the cell under mouse cursor.
   ---               | 
   Space + Mousemove | Pan the camera left/right/up/down. 
   Mouse Scroll      | Zoom in/out. 
