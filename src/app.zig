@@ -127,7 +127,8 @@ fn framebufferSizeCallback(window: glfw.Window, width: u32, height: u32) void {
 fn framebufferSizeCallbackZig(_: *@This(), width: u32, height: u32) !void {
     const fw = @intToFloat(f32, width);
     const fh = @intToFloat(f32, height);
-    graphics.setProjectionMatrix(zmath.orthographicOffCenterLh(0, fw, 0, fh, 0, 1));
+    const proj = zmath.orthographicOffCenterLh(0, fw, 0, fh, 0, 1);
+    graphics.setProjectionMatrix(zmath.transpose(proj));
     graphics.setViewMatrix(zmath.identity());
 }
 
