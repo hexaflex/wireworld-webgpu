@@ -1,12 +1,14 @@
 const std = @import("std");
 const glfw = @import("glfw");
 const gpu = @import("gpu");
+const zmath = @import("zmath");
 const build_options = @import("build_options");
 const gnorp = @import("gnorp");
 const graphics = gnorp.graphics;
 const input = gnorp.input;
 const log = gnorp.log;
 const timer = gnorp.timer;
+const math = gnorp.math;
 const Grid = @import("grid.zig");
 const Palette = @import("palette.zig");
 const Circuit = @import("circuit.zig");
@@ -15,7 +17,7 @@ test {
     std.testing.refAllDecls(@This());
 }
 
-const DrawMode = enum {
+const Mode = enum {
     none,
     draw,
     erase,
@@ -31,9 +33,9 @@ grid: *Grid = undefined,
 title_timer: u64 = 0,
 step_count: usize = 1,
 drawing_tool: Grid.Cell = .wire,
-drawing_mode: DrawMode = .none,
-running: bool = false,
+mode: Mode = .none,
 dragging: bool = false,
+running: bool = false,
 
 /// init initializes the application. Optionally loading the given simulation
 /// file. The palette can be used specify a custom color palette if the input
@@ -47,6 +49,7 @@ pub fn init(filename: ?[]const u8, palette: ?Palette) !*@This() {
     graphics.window.setKeyCallback(keyCallback);
     graphics.window.setScrollCallback(scrollCallback);
     graphics.window.setMouseButtonCallback(mouseButtonCallback);
+    graphics.window.setFramebufferSizeCallback(framebufferSizeCallback);
 
     if (filename) |file| {
         self.init_filename = try gnorp.allocator.dupe(u8, file);
@@ -60,6 +63,8 @@ pub fn init(filename: ?[]const u8, palette: ?Palette) !*@This() {
         self.grid = try Grid.initFromSize(254, 253);
     }
 
+    const fb = try graphics.window.getFramebufferSize();
+    try self.framebufferSizeCallbackZig(fb.width, fb.height);
     return self;
 }
 
@@ -68,10 +73,12 @@ pub fn deinit(self: *@This()) void {
         gnorp.allocator.free(f);
 
     self.grid.release();
+
     graphics.window.setUserPointer(null);
     graphics.window.setKeyCallback(null);
     graphics.window.setScrollCallback(null);
     graphics.window.setMouseButtonCallback(null);
+    graphics.window.setFramebufferSizeCallback(null);
     gnorp.allocator.destroy(self);
 }
 
@@ -83,9 +90,12 @@ pub fn update(self: *@This()) !void {
         });
     }
 
-    switch (self.drawing_mode) {
-        .erase => self.grid.setCellAt(input.cursor_pos, .empty),
-        .draw => self.grid.setCellAt(input.cursor_pos, self.drawing_tool),
+    switch (self.mode) {
+        .draw => switch (self.mode) {
+            .erase => self.grid.setCellAt(input.cursor_pos, .empty),
+            .draw => self.grid.setCellAt(input.cursor_pos, self.drawing_tool),
+            else => {},
+        },
         else => {},
     }
 
@@ -110,11 +120,24 @@ pub fn draw(self: *@This()) !void {
     });
 }
 
+fn framebufferSizeCallback(window: glfw.Window, width: u32, height: u32) void {
+    var self = window.getUserPointer(@This()) orelse unreachable;
+    self.framebufferSizeCallbackZig(width, height) catch |err| {
+        log.err("framebufferSizeCallback: {}", .{err});
+    };
+}
+
+fn framebufferSizeCallbackZig(_: *@This(), width: u32, height: u32) !void {
+    const fw = @intToFloat(f32, width);
+    const fh = @intToFloat(f32, height);
+    graphics.setProjectionMatrix(zmath.orthographicOffCenterLh(0, fw, 0, fh, 0, 1));
+    graphics.setViewMatrix(zmath.identity());
+}
+
 fn mouseButtonCallback(window: glfw.Window, button: glfw.MouseButton, action: glfw.Action, mods: glfw.Mods) void {
     var self = window.getUserPointer(@This()) orelse unreachable;
     self.mouseButtonCallbackZig(button, action, mods) catch |err| {
         log.err("mouseButtonCallback: {}", .{err});
-        gnorp.close();
     };
 }
 
@@ -123,12 +146,12 @@ fn mouseButtonCallbackZig(self: *@This(), button: glfw.MouseButton, action: glfw
 
     switch (action) {
         .press => switch (button) {
-            .left => self.drawing_mode = .draw,
-            .right => self.drawing_mode = .erase,
+            .left => self.mode = .draw,
+            .right => self.mode = .erase,
             else => {},
         },
         .release => switch (button) {
-            .left, .right => self.drawing_mode = .none,
+            .left, .right => self.mode = .none,
             else => {},
         },
         else => {},
@@ -139,7 +162,6 @@ fn scrollCallback(window: glfw.Window, xoffset: f64, yoffset: f64) void {
     var self = window.getUserPointer(@This()) orelse unreachable;
     self.scrollCallbackZig(xoffset, yoffset) catch |err| {
         log.err("scrollCallback: {}", .{err});
-        gnorp.close();
     };
 }
 
@@ -152,7 +174,6 @@ fn keyCallback(window: glfw.Window, key: glfw.Key, scancode: i32, action: glfw.A
     var self = window.getUserPointer(@This()) orelse unreachable;
     self.keyCallbackZig(key, scancode, action, mods) catch |err| {
         log.err("keyCallback: {}", .{err});
-        gnorp.close();
     };
 }
 
@@ -175,16 +196,15 @@ inline fn keyCallbackZig(self: *@This(), key: glfw.Key, scancode: i32, action: g
             .six => self.drawing_tool = .notes3,
             .seven => self.drawing_tool = .notes4,
             .eight => self.drawing_tool = .notes5,
+            .q => self.running = !self.running,
             .e => self.grid.step(1),
+            .minus => self.step_count = @max(self.step_count - 1, min_step_count),
+            .equal => self.step_count = @min(self.step_count + 1, max_step_count),
             .n => if (mods.control) {
                 self.running = false;
                 self.grid.release();
                 self.grid = try Grid.initFromSize(254, 253);
             },
-            .q => self.running = !self.running,
-            .s => self.step_count = @max(self.step_count - 1, min_step_count),
-            .v => self.grid.center(try graphics.getFramebufferSize()),
-            .w => self.step_count = @min(self.step_count + 1, max_step_count),
             .F5 => if (self.init_filename) |file| {
                 var sim = try Circuit.initFromFile(file, &self.init_palette);
                 defer sim.deinit();
@@ -192,6 +212,10 @@ inline fn keyCallbackZig(self: *@This(), key: glfw.Key, scancode: i32, action: g
                 self.running = false;
                 self.grid.release();
                 self.grid = try Grid.initFromCircuit(&sim);
+            },
+            .v => {
+                const vp = try graphics.getFramebufferSize();
+                self.grid.center(vp);
             },
             else => {},
         },
