@@ -91,11 +91,8 @@ pub fn update(self: *@This()) !void {
     }
 
     switch (self.mode) {
-        .draw => switch (self.mode) {
-            .erase => self.grid.setCellAt(input.cursor_pos, .empty),
-            .draw => self.grid.setCellAt(input.cursor_pos, self.drawing_tool),
-            else => {},
-        },
+        .erase => self.grid.setCellAt(input.cursor_pos, .empty),
+        .draw => self.grid.setCellAt(input.cursor_pos, self.drawing_tool),
         else => {},
     }
 
