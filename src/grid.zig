@@ -72,7 +72,6 @@ compute_pipeline: ?*gpu.ComputePipeline = null,
 compute_bindgroup: ?*gpu.BindGroup = null,
 compute_buffer_in: ?*gpu.Buffer = null,
 compute_buffer_out: ?*gpu.Buffer = null,
-max_compute_invocations: u32 = 1,
 workgroup_size: u32 = 64,
 
 transform: math.Transform = math.Transform.init(),
@@ -129,9 +128,7 @@ pub fn init() !*@This() {
     if (sl.limits.max_compute_workgroup_size_x < 2)
         return error.InsufficientComputeWorkgroups;
 
-    self.max_compute_invocations = sl.limits.max_compute_invocations_per_workgroup;
     self.workgroup_size = @max(sl.limits.max_compute_workgroup_size_x, 64);
-
     gnorp.log.debug(@src(), "grid workgroup size: {any}", .{self.workgroup_size});
 
     // Initialize the remainder of the grid.
