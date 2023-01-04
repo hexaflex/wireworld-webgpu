@@ -1,5 +1,6 @@
 const std = @import("std");
 const gpu = @import("gpu");
+const zmath = @import("zmath");
 const gnorp = @import("gnorp");
 const graphics = gnorp.graphics;
 const math = gnorp.math;
@@ -43,7 +44,7 @@ pub const Cell = enum(u32) {
 };
 
 const RenderUniforms = extern struct {
-    mat_model: math.Mat,
+    mat_model: zmath.Mat,
     palette: [@typeInfo(Palette).Struct.fields.len][4]f32,
     grid_width: u32,
     grid_height: u32,
@@ -190,6 +191,12 @@ inline fn getCellCount(self: *const @This()) usize {
 /// getCellSize returns the cell buffer's size in bytes.
 inline fn getCellSize(self: *const @This()) usize {
     return self.getCellCount() * @sizeOf(Cell);
+}
+
+/// getCellScale returns the dimensions of a single cell, accounting for
+/// the current zoon factor.
+pub inline fn getCellScale(self: *const @This()) [2]f32 {
+    return self.transform.scale;
 }
 
 /// indexOf returns the cell index for the given coordinates.
